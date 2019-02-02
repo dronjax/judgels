@@ -30,6 +30,7 @@ import { contestProblemAPI } from './api/uriel/contestProblem';
 import { contestScoreboardAPI } from './api/uriel/contestScoreboard';
 import { contestSubmissionAPI } from './api/uriel/contestSubmission';
 import { contestFileAPI } from './api/uriel/contestFile';
+import { courseAPI } from './api/jerahmeel/course';
 import { sessionReducer, SessionState } from './session/sessionReducer';
 import { webPrefsReducer, WebPrefsState } from './webPrefs/webPrefsReducer';
 import { toastActions } from './toast/toastActions';
@@ -94,6 +95,7 @@ export const store = createStore<AppState>(
         contestScoreboardAPI,
         contestSubmissionAPI,
         contestFileAPI,
+        courseAPI,
         toastActions,
       }),
       routerMiddleware(history)
