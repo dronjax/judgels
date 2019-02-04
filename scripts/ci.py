@@ -37,17 +37,18 @@ MODULES = OrderedDict([
 
     (':commons', set()),
     (':api', set()),
-    (':play-commons', {':commons', ':judgels-commons:judgels-persistence-core'}),
+    (':play-commons', {':commons', ':judgels-commons:judgels-service-persistence'}),
     (':jophiel-commons', {':commons', ':judgels-commons:judgels-persistence-core'}),
     (':gabriel-commons', {':commons'}),
     (':gabriel-blackbox', {':gabriel-commons'}),
-    (':sandalphon-commons', {':play-commons', ':gabriel-commons', ':api'}),
+    (':sandalphon-commons', {':play-commons', ':gabriel-commons', ':api', ':judgels-commons:judgels-service-persistence', ':sandalphon:sandalphon-api', ':gabriel:gabriel-api', ':sealtiel:sealtiel-api'}),
     (':sandalphon-blackbox-adapters', {':sandalphon-commons', ':gabriel-blackbox'}),
 
 
     (':sandalphon:sandalphon-api', {':jophiel:jophiel-api', ':gabriel:gabriel-api'}),
     (':sandalphon:sandalphon-client', {':sandalphon:sandalphon-api', ':judgels-commons:judgels-fs', ':judgels-commons:judgels-persistence-core', ':judgels-commons:judgels-persistence-testing', ':judgels-commons:judgels-service-persistence', ':sealtiel:sealtiel-api'}),
-    (':sandalphon', {':sandalphon:sandalphon-api', ':sandalphon:sandalphon-client', ':sandalphon-commons', ':jophiel-commons', ':sandalphon-blackbox-adapters'}),
+    (':sandalphon:sandalphon-app', {':sandalphon:sandalphon-client', ':jophiel:jophiel-client'}),
+    (':sandalphon', {':sandalphon:sandalphon-app', ':sandalphon:sandalphon-api', ':sandalphon:sandalphon-client', ':sandalphon-commons', ':jophiel-commons', ':sandalphon-blackbox-adapters'}),
 
     (':uriel:uriel-api', {':sandalphon:sandalphon-api'}),
     (':uriel:uriel-app', {':uriel:uriel-api', ':jophiel:jophiel-client', ':sandalphon:sandalphon-client', ':sealtiel:sealtiel-api'}),

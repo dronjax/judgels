@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import judgels.sandalphon.api.problem.ProblemStatement;
+
 @Authenticated(value = {LoggedIn.class, HasRole.class})
 @Singleton
 public class ProblemStatementController extends AbstractJudgelsController {
@@ -84,7 +86,10 @@ public class ProblemStatementController extends AbstractJudgelsController {
             statement = problemService.getStatement(IdentityUtils.getUserJid(), problem.getJid(), ProblemControllerUtils.getCurrentStatementLanguage());
         } catch (IOException e) {
             if (ProblemType.PROGRAMMING.equals(problem.getType())) {
-                statement = new ProblemStatement(ProblemStatementUtils.getDefaultTitle(ProblemControllerUtils.getCurrentStatementLanguage()), ProgrammingProblemStatementUtils.getDefaultText(ProblemControllerUtils.getCurrentStatementLanguage()));
+                statement = new ProblemStatement.Builder()
+                        .title(ProblemStatementUtils.getDefaultTitle(ProblemControllerUtils.getCurrentStatementLanguage()))
+                        .text(ProgrammingProblemStatementUtils.getDefaultText(ProblemControllerUtils.getCurrentStatementLanguage()))
+                        .build();
             } else {
                 throw new IllegalStateException("Problem besides programming has not been defined");
             }
@@ -134,7 +139,10 @@ public class ProblemStatementController extends AbstractJudgelsController {
 
         try {
             UpdateStatementForm updateStatementData = updateStatementForm.get();
-            ProblemStatement statement = new ProblemStatement(updateStatementData.title, JudgelsPlayUtils.toSafeHtml(updateStatementData.text));
+            ProblemStatement statement = new ProblemStatement.Builder()
+                    .title(updateStatementData.title)
+                    .text(JudgelsPlayUtils.toSafeHtml(updateStatementData.text))
+                    .build();
 
             problemService.updateStatement(IdentityUtils.getUserJid(), problem.getJid(), ProblemControllerUtils.getCurrentStatementLanguage(), statement);
         } catch (IOException e) {

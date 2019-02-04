@@ -5,6 +5,8 @@ apply plugin: 'org.iatoki.play-webjars'
 
 model {
     tasks.runPlayBinary {
+        task run(type: JavaExec, dependsOn: it) {}
+
         httpPort 9002
     }
 }
@@ -13,6 +15,8 @@ dependencies {
     play project(':sandalphon-commons')
     play project(':jophiel-commons')
     play project(':sandalphon-blackbox-adapters')
+
+    play project(':sandalphon:sandalphon-app')
 
     play "org.webjars:prettify:4-Mar-2013"
 }

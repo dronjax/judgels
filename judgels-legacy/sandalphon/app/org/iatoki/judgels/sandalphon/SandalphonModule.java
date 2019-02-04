@@ -4,7 +4,9 @@ import com.google.inject.AbstractModule;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import judgels.persistence.ActorProvider;
+import judgels.sandalphon.SandalphonConfiguration;
 import judgels.service.JudgelsVersion;
+import judgels.service.client.ClientChecker;
 import org.hibernate.SessionFactory;
 import org.iatoki.judgels.FileSystemProvider;
 import org.iatoki.judgels.GitProvider;
@@ -18,6 +20,8 @@ import org.iatoki.judgels.play.general.GeneralVersion;
 import org.iatoki.judgels.play.migration.JudgelsDataMigrator;
 import org.iatoki.judgels.play.model.LegacyActorProvider;
 import org.iatoki.judgels.play.model.LegacySessionFactory;
+import org.iatoki.judgels.sandalphon.client.ClientService;
+import org.iatoki.judgels.sandalphon.client.ClientServiceImpl;
 import org.iatoki.judgels.sandalphon.lesson.LessonFileSystemProvider;
 import org.iatoki.judgels.sandalphon.lesson.LessonGitProvider;
 import org.iatoki.judgels.sandalphon.problem.base.ProblemFileSystemProvider;
@@ -31,6 +35,7 @@ import org.iatoki.judgels.sandalphon.problem.programming.submission.ProgrammingS
 import org.iatoki.judgels.sandalphon.problem.programming.submission.ProgrammingSubmissionServiceImpl;
 import org.iatoki.judgels.sandalphon.user.UserServiceImpl;
 
+import java.io.File;
 import java.time.Clock;
 
 public final class SandalphonModule extends AbstractModule {
@@ -42,8 +47,9 @@ public final class SandalphonModule extends AbstractModule {
 
         // <DEPRECATED>
         Config config = ConfigFactory.load();
+        SandalphonConfiguration sandalphonConfig = SandalphonProperties.build(config);
         JudgelsPlayProperties.buildInstance("Sandalphon", JudgelsVersion.INSTANCE, config);
-        SandalphonProperties.buildInstance(config);
+        bind(SandalphonConfiguration.class).toInstance(sandalphonConfig);
         bind(SandalphonSingletonsBuilder.class).asEagerSingleton();
         // </DEPRECATED>
 
@@ -53,12 +59,15 @@ public final class SandalphonModule extends AbstractModule {
         bind(BundleSubmissionService.class).to(BundleSubmissionServiceImpl.class);
         bind(BundleProblemGrader.class).to(BundleProblemGraderImpl.class);
 
-        bind(JophielAuthAPI.class).toInstance(jophielAuthAPI());
-        bind(FileSystemProvider.class).annotatedWith(ProblemFileSystemProvider.class).toInstance(problemFileSystemProvider());
-        bind(FileSystemProvider.class).annotatedWith(SubmissionFileSystemProvider.class).toInstance(submissionFileSystemProvider());
-        bind(FileSystemProvider.class).annotatedWith(LessonFileSystemProvider.class).toInstance(lessonFileSystemProvider());
-        bind(GitProvider.class).annotatedWith(ProblemGitProvider.class).toInstance(problemGitProvider());
-        bind(GitProvider.class).annotatedWith(LessonGitProvider.class).toInstance(lessonGitProvider());
+        bind(ClientChecker.class).toInstance(clientChecker(sandalphonConfig));
+        bind(ClientService.class).toInstance(clientService(sandalphonConfig));
+
+        bind(JophielAuthAPI.class).toInstance(jophielAuthAPI(sandalphonConfig));
+        bind(FileSystemProvider.class).annotatedWith(ProblemFileSystemProvider.class).toInstance(problemFileSystemProvider(sandalphonConfig));
+        bind(FileSystemProvider.class).annotatedWith(SubmissionFileSystemProvider.class).toInstance(submissionFileSystemProvider(sandalphonConfig));
+        bind(FileSystemProvider.class).annotatedWith(LessonFileSystemProvider.class).toInstance(lessonFileSystemProvider(sandalphonConfig));
+        bind(GitProvider.class).annotatedWith(ProblemGitProvider.class).toInstance(problemGitProvider(sandalphonConfig));
+        bind(GitProvider.class).annotatedWith(LessonGitProvider.class).toInstance(lessonGitProvider(sandalphonConfig));
         bind(BaseUserService.class).to(UserServiceImpl.class);
 
         bind(SessionFactory.class).to(LegacySessionFactory.class);
@@ -66,31 +75,35 @@ public final class SandalphonModule extends AbstractModule {
         bind(Clock.class).toInstance(Clock.systemUTC());
     }
 
-    private SandalphonProperties sandalphonProperties() {
-        return SandalphonProperties.getInstance();
+    private ClientChecker clientChecker(SandalphonConfiguration config) {
+        return new ClientChecker(config.getClients());
     }
 
-    private JophielAuthAPI jophielAuthAPI() {
-        return new JophielAuthAPI(sandalphonProperties().getRaphaelBaseUrl(), sandalphonProperties().getJophielBaseUrl());
+    private ClientService clientService(SandalphonConfiguration config) {
+        return new ClientServiceImpl(config.getClients());
     }
 
-    private LocalFileSystemProvider problemFileSystemProvider() {
-        return new LocalFileSystemProvider(sandalphonProperties().getProblemLocalDir());
+    private JophielAuthAPI jophielAuthAPI(SandalphonConfiguration config) {
+        return new JophielAuthAPI(config.getRaphaelBaseUrl(), config.getJophielConfig().getBaseUrl());
     }
 
-    private FileSystemProvider submissionFileSystemProvider() {
-        return new LocalFileSystemProvider(sandalphonProperties().getSubmissionLocalDir());
+    private LocalFileSystemProvider problemFileSystemProvider(SandalphonConfiguration config) {
+        return new LocalFileSystemProvider(new File(config.getBaseDataDir()));
     }
 
-    private LocalFileSystemProvider lessonFileSystemProvider() {
-        return new LocalFileSystemProvider(sandalphonProperties().getLessonLocalDir());
+    private FileSystemProvider submissionFileSystemProvider(SandalphonConfiguration config) {
+        return new LocalFileSystemProvider(new File(config.getBaseDataDir(), "submissions"));
     }
 
-    private GitProvider problemGitProvider() {
-        return new LocalGitProvider(problemFileSystemProvider());
+    private LocalFileSystemProvider lessonFileSystemProvider(SandalphonConfiguration config) {
+        return new LocalFileSystemProvider(new File(config.getBaseDataDir()));
     }
 
-    private GitProvider lessonGitProvider() {
-        return new LocalGitProvider(lessonFileSystemProvider());
+    private GitProvider problemGitProvider(SandalphonConfiguration config) {
+        return new LocalGitProvider(problemFileSystemProvider(config));
+    }
+
+    private GitProvider lessonGitProvider(SandalphonConfiguration config) {
+        return new LocalGitProvider(lessonFileSystemProvider(config));
     }
 }

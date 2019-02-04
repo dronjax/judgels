@@ -3,32 +3,33 @@ import * as React from 'react';
 
 import { HtmlText } from 'components/HtmlText/HtmlText';
 import { ContentCard } from 'components/ContentCard/ContentCard';
-import { ProblemStatement } from 'modules/api/sandalphon/problem';
+import { ProblemLimits, ProblemStatement } from 'modules/api/sandalphon/problem';
 
 import './ProblemStatementCard.css';
 
 export interface ProblemStatementCardProps {
   alias: string;
   statement: ProblemStatement;
+  limits: ProblemLimits;
 }
 
 export class ProblemStatementCard extends React.PureComponent<ProblemStatementCardProps> {
   render() {
-    const { alias, statement } = this.props;
+    const { alias, statement, limits } = this.props;
     return (
       <ContentCard>
         <h2 className="problem-statement__name">
-          {alias}. {statement.name}
+          {alias}. {statement.title}
         </h2>
         <HTMLTable condensed className="problem-statement__limits">
           <tbody>
             <tr>
               <td>Time limit</td>
-              <td>{this.renderTimeLimit(statement.timeLimit)}</td>
+              <td>{this.renderTimeLimit(limits.timeLimit)}</td>
             </tr>
             <tr>
               <td>Memory limit</td>
-              <td>{this.renderMemoryLimit(statement.memoryLimit)}</td>
+              <td>{this.renderMemoryLimit(limits.memoryLimit)}</td>
             </tr>
           </tbody>
         </HTMLTable>
