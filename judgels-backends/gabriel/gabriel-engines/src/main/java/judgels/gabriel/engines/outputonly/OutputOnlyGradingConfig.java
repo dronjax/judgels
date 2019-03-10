@@ -18,12 +18,12 @@ public interface OutputOnlyGradingConfig extends SingleSourceFileWithoutSubtasks
     }
 
     @Override
-    default int getTimeLimitInMilliseconds() {
+    default int getTimeLimit() {
         return 0;
     }
 
     @Override
-    default int getMemoryLimitInKilobytes() {
+    default int getMemoryLimit() {
         return 0;
     }
 

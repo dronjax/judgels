@@ -3,19 +3,18 @@ package org.iatoki.judgels.sandalphon.controllers.api.client.v2;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import judgels.gabriel.api.GradingConfig;
 import judgels.gabriel.api.LanguageRestriction;
 import judgels.sandalphon.api.problem.ProblemInfo;
 import judgels.sandalphon.api.problem.ProblemStatement;
 import judgels.sandalphon.api.problem.ProblemType;
 import judgels.sandalphon.api.problem.bundle.Item;
-import judgels.sandalphon.api.problem.bundle.ItemConfig;
 import judgels.sandalphon.api.problem.bundle.ItemType;
 import judgels.sandalphon.api.problem.programming.ProblemLimits;
 import judgels.sandalphon.api.problem.programming.ProblemSubmissionConfig;
 import judgels.sandalphon.problem.bundle.ItemProcessorRegistry;
 import judgels.service.client.ClientChecker;
 import org.iatoki.judgels.gabriel.GradingEngineRegistry;
-import org.iatoki.judgels.gabriel.blackbox.BlackBoxGradingConfig;
 import org.iatoki.judgels.play.api.JudgelsAPIInternalServerErrorException;
 import org.iatoki.judgels.play.api.JudgelsAPINotFoundException;
 import org.iatoki.judgels.play.controllers.apis.AbstractJudgelsAPIController;
@@ -107,7 +106,7 @@ public final class ClientProblemAPIControllerV2 extends AbstractJudgelsAPIContro
         ProblemSubmissionConfig submissionConfig = getSubmissionConfig(problemJid);
         result.submissionConfig(submissionConfig);
 
-        BlackBoxGradingConfig config = getBlackBoxGradingConfig(problemJid, submissionConfig.getGradingEngine());
+        GradingConfig config = getBlackBoxGradingConfig(problemJid, submissionConfig.getGradingEngine());
 
         try {
             String language = sanitizeLanguageCode(problemJid, DynamicForm.form().bindFromRequest().get("language"));
@@ -116,8 +115,8 @@ public final class ClientProblemAPIControllerV2 extends AbstractJudgelsAPIContro
             result.statement(statement);
 
             ProblemLimits limits = new ProblemLimits.Builder()
-                    .timeLimit(config.getTimeLimitInMilliseconds())
-                    .memoryLimit(config.getMemoryLimitInKilobytes())
+                    .timeLimit(config.getTimeLimit())
+                    .memoryLimit(config.getMemoryLimit())
                     .build();
             result.limits(limits);
 
@@ -251,11 +250,11 @@ public final class ClientProblemAPIControllerV2 extends AbstractJudgelsAPIContro
         }
     }
 
-    private BlackBoxGradingConfig getBlackBoxGradingConfig(String problemJid, String gradingEngine) {
+    private GradingConfig getBlackBoxGradingConfig(String problemJid, String gradingEngine) {
         try {
-            return (BlackBoxGradingConfig) programmingProblemService.getGradingConfig(null, problemJid);
+            return programmingProblemService.getGradingConfig(null, problemJid);
         } catch (IOException e) {
-            return (BlackBoxGradingConfig) GradingEngineRegistry.getInstance()
+            return GradingEngineRegistry.getInstance()
                     .getEngine(gradingEngine)
                     .createDefaultGradingConfig();
         }
@@ -270,7 +269,7 @@ public final class ClientProblemAPIControllerV2 extends AbstractJudgelsAPIContro
         LanguageRestriction languageRestriction = getLanguageRestriction(problemJid);
         submissionConfig.gradingLanguageRestriction(languageRestriction);
 
-        BlackBoxGradingConfig config = getBlackBoxGradingConfig(problemJid, gradingEngine);
+        GradingConfig config = getBlackBoxGradingConfig(problemJid, gradingEngine);
         submissionConfig.sourceKeys(config.getSourceFileFields());
 
         return submissionConfig.build();

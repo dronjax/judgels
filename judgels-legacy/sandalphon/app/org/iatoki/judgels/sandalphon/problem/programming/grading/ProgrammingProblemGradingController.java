@@ -1,9 +1,9 @@
 package org.iatoki.judgels.sandalphon.problem.programming.grading;
 
 import com.google.common.collect.ImmutableList;
+import judgels.gabriel.api.GradingConfig;
 import judgels.gabriel.api.LanguageRestriction;
 import org.iatoki.judgels.FileInfo;
-import org.iatoki.judgels.gabriel.GradingConfig;
 import org.iatoki.judgels.gabriel.GradingEngineRegistry;
 import org.iatoki.judgels.play.IdentityUtils;
 import org.iatoki.judgels.play.InternalLink;
@@ -138,6 +138,7 @@ public final class ProgrammingProblemGradingController extends AbstractJudgelsCo
         } catch (IOException e) {
             config = GradingEngineRegistry.getInstance().getEngine(engine).createDefaultGradingConfig();
         }
+        System.out.println(config);
         List<FileInfo> testDataFiles = programmingProblemService.getGradingTestDataFiles(IdentityUtils.getUserJid(), problem.getJid());
         List<FileInfo> helperFiles = programmingProblemService.getGradingHelperFiles(IdentityUtils.getUserJid(), problem.getJid());
 
@@ -189,12 +190,15 @@ public final class ProgrammingProblemGradingController extends AbstractJudgelsCo
     public Result editGradingConfigByTokilibFormat(long problemId) throws ProblemNotFoundException {
         Problem problem = problemService.findProblemById(problemId);
 
+        System.out.println("A");
         if (!ProgrammingProblemControllerUtils.isAllowedToManageGrading(problemService, problem)) {
             return notFound();
         }
+        System.out.println("B");
 
         problemService.createUserCloneIfNotExists(IdentityUtils.getUserJid(), problem.getJid());
 
+        System.out.println("C");
         String engine;
         try {
             engine = programmingProblemService.getGradingEngine(IdentityUtils.getUserJid(), problem.getJid());
@@ -202,12 +206,15 @@ public final class ProgrammingProblemGradingController extends AbstractJudgelsCo
             engine = GradingEngineRegistry.getInstance().getDefaultEngine();
         }
 
+        System.out.println("D");
         GradingEngineAdapter adapter = GradingEngineAdapterRegistry.getInstance().getByGradingEngineName(engine);
 
+        System.out.println("E");
         if (!(adapter instanceof ConfigurableWithTokilibFormat)) {
             return forbidden();
         }
 
+        System.out.println("F");
         List<FileInfo> testDataFiles = programmingProblemService.getGradingTestDataFiles(IdentityUtils.getUserJid(), problem.getJid());
         GradingConfig config;
         try {
@@ -216,13 +223,18 @@ public final class ProgrammingProblemGradingController extends AbstractJudgelsCo
             config = GradingEngineRegistry.getInstance().getEngine(engine).createDefaultGradingConfig();
         }
 
+        System.out.println("G");
         try {
             GradingConfig newConfig = ((ConfigurableWithTokilibFormat) adapter).updateConfigWithTokilibFormat(config, testDataFiles);
+            System.out.println("G1");
             programmingProblemService.updateGradingConfig(IdentityUtils.getUserJid(), problem.getJid(), newConfig);
-        } catch (IOException e) {
+            System.out.println("G2");
+        } catch (Throwable e) {
+            e.printStackTrace();
             throw new IllegalStateException("Can't update grading config using tokilib format", e);
         }
 
+        System.out.println("H");
         return redirect(routes.ProgrammingProblemGradingController.editGradingConfig(problem.getId()));
     }
 

@@ -1,7 +1,7 @@
 apply from: '../../gradle/java.gradle'
 
 dependencies {
-    implementation project(':gabriel:gabriel-engine-api')
+    api project(':gabriel:gabriel-engine-api')
 
     implementation "com.google.guava:guava:$guavaVersion"
     implementation "org.apache.commons:commons-lang3:$apacheCommonsLang3Version"
